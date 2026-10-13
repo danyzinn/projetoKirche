@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  web:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  database:
+    runs-on: ubuntu-24.04  # imagem já inclui PostgreSQL 16 (initdb)
+    steps:
+      - uses: actions/checkout@v4
+      - name: Migrations + testes de RLS/isolamento
+        run: WITH_SEED=1 bash scripts/test-db.sh

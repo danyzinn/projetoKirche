@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Tokens padrão (derivados da Kirche) — sobrescritos por organization_branding.theme_tokens */
+:root {
+  --primary: 181 18 39;        /* #B51227 */
+  --primary-hover: 146 15 32;  /* #920F20 */
+  --primary-soft: 252 233 237; /* #FCE9ED */
+  --surface: 255 255 255;
+  --canvas: 247 248 250;
+  --text: 23 33 43;
+  --muted: 104 116 132;
+  --border: 230 233 238;
+  --success: 22 132 91;
+  --warning: 185 119 19;
+  --error: 192 52 62;
+  color-scheme: light;
+}
+
+html { -webkit-text-size-adjust: 100%; }
+body {
+  @apply bg-canvas text-ink font-sans antialiased;
+}
+
+:focus-visible {
+  outline: 3px solid rgb(var(--primary) / 0.6);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+.pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 0px); }
