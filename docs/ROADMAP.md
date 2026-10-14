@@ -93,3 +93,11 @@ Respostas da igreja piloto ─────┘   (docs/PILOT_QUESTIONS.md bloquei
 3. Preferências de notificação + fila de aprovação de avisos.
 4. Swap de escala e disponibilidade.
 5. Reservas de salas com conflito.
+
+## Incremento 2026-10-14 — um app por igreja
+
+Implementado na branch `codex/one-app-per-church` (PR #1): configuração pública central, identidade antes/depois do login, manifesto gerado, filtro por slug, interseção de módulos e proteção de rotas, navegação de quatro seções com aliases, cadastro com continuidade do convite e migration 0006 de acesso/privacidade. Detalhes de implantação em `ONE_APP_PER_CHURCH.md`.
+
+Verificação local: 49 testes web aprovados (8 arquivos), lint, typecheck, configuração e build aprovados. Testes de navegação executam em jsdom; não equivalem à inspeção visual em navegador.
+
+Pendente: suite PostgreSQL (runtime local indisponível; CI ainda sem execução registrada ao abrir o PR), inspeção visual em navegador e homologação do cadastro/confirmacão de e-mail com Supabase real. As alterações de banco permanecem em revisão e não foram aplicadas a um ambiente real. Não considerar este incremento uma versão pronta para produção.

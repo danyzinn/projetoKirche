@@ -28,7 +28,7 @@ export function MinistryPage() {
 
   const ministry = useQuery({ queryKey: ['ministry', orgId, id], queryFn: () => api.getMinistry(orgId, id) });
   const members = useQuery({ queryKey: ['ministry-members', orgId, id], queryFn: () => api.listMinistryMembers(orgId, id) });
-  const schedules = useQuery({ queryKey: ['schedules', orgId, id], queryFn: () => api.listSchedules(orgId, id) });
+  const schedules = useQuery({ queryKey: ['schedules', orgId, id], queryFn: () => api.listSchedules(orgId, id), enabled: ctx.modules.includes('schedules') });
 
   if (ministry.isLoading) return <LoadingList rows={2} />;
   if (ministry.error || !ministry.data) return <><PageHeader title="Ministério" back="/comunidade" /><ErrorState error={ministry.error} /></>;
@@ -58,13 +58,13 @@ export function MinistryPage() {
         </Card>
       </section>
 
-      <section aria-labelledby="sched" className="space-y-3">
+      {ctx.modules.includes('schedules') && <section aria-labelledby="sched" className="space-y-3">
         <h2 id="sched" className="font-semibold">Escalas</h2>
         {canCreateSchedule && <NewSchedule orgId={orgId} ministryId={id} tz={ctx.org.timezone} />}
         {schedules.isLoading ? <LoadingList rows={2} /> : schedules.error ? <ErrorState error={schedules.error} /> : schedules.data?.length ? (
           schedules.data.map((s) => <ScheduleCard key={s.id} s={s} orgId={orgId} tz={ctx.org.timezone} canEdit={canEditSchedule} team={members.data ?? []} />)
         ) : <EmptyState title="Nenhuma escala" description={canCreateSchedule ? 'Crie a primeira escala acima.' : 'Quando a liderança publicar escalas, elas aparecerão aqui.'} />}
-      </section>
+      </section>}
     </div>
   );
 }

@@ -10,7 +10,7 @@ run_as_pg() { if [ "$(id -u)" = "0" ]; then runuser -u postgres -- "$@"; else "$
 
 cleanup() { :; }
 if [ -z "${TEST_DATABASE_URL:-}" ]; then
-  PG_BIN="${PG_BIN:-$(ls -d /usr/lib/postgresql/*/bin 2>/dev/null | sort -V | tail -1)}"
+  PG_BIN="${PG_BIN:-$(ls -d /usr/lib/postgresql/*/bin 2>/dev/null | sort -V | tail -1 || true)}"
   [ -x "$PG_BIN/initdb" ] || { echo "initdb não encontrado; defina PG_BIN ou TEST_DATABASE_URL"; exit 1; }
   TMP="$(mktemp -d)"; chmod 777 "$TMP"
   PORT="${TEST_DB_PORT:-54329}"
