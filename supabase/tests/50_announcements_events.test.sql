@@ -22,7 +22,7 @@ select tests.eq(tests.count($$select 1 from notifications where entity_id = 'a20
 select mark_announcement_read('a2000000-0000-4000-8000-000000000002');
 select mark_announcement_read('a2000000-0000-4000-8000-000000000002');
 select tests.eq(tests.count($$select 1 from announcement_reads$$), 1, 'leitura registrada de forma idempotente');
-select tests.eq(mark_notifications_read(null), 1, 'marcar todas como lidas');
+select tests.eq(mark_notifications_read('aaaaaaaa-0000-4000-8000-000000000001', null), 1, 'marcar todas como lidas');
 
 select tests.login('10000000-0000-4000-8000-000000000009'); -- mídia, fora do público
 select tests.eq(tests.count($$select 1 from announcements where id = 'a2000000-0000-4000-8000-000000000002'$$), 0, 'fora do público não vê aviso segmentado');

@@ -1,3 +1,5 @@
+> Direção atual: **um app por igreja, com núcleo compartilhado**. Consulte [implantação e continuidade](ONE_APP_PER_CHURCH.md). As descrições anteriores de multi-tenant referem-se ao modelo de dados, não a um seletor comercial de igrejas.
+
 # Arquitetura — Kirche Core
 
 ## 1. Visão

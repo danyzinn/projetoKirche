@@ -26,20 +26,20 @@ export function MinistryPage() {
   const canCreateSchedule = can('schedules.create', scope);
   const canEditSchedule = can('schedules.update', scope);
 
-  const ministry = useQuery({ queryKey: ['ministry', id], queryFn: () => api.getMinistry(orgId, id) });
-  const members = useQuery({ queryKey: ['ministry-members', id], queryFn: () => api.listMinistryMembers(orgId, id) });
-  const schedules = useQuery({ queryKey: ['schedules', id], queryFn: () => api.listSchedules(orgId, id) });
+  const ministry = useQuery({ queryKey: ['ministry', orgId, id], queryFn: () => api.getMinistry(orgId, id) });
+  const members = useQuery({ queryKey: ['ministry-members', orgId, id], queryFn: () => api.listMinistryMembers(orgId, id) });
+  const schedules = useQuery({ queryKey: ['schedules', orgId, id], queryFn: () => api.listSchedules(orgId, id) });
 
   if (ministry.isLoading) return <LoadingList rows={2} />;
-  if (ministry.error || !ministry.data) return <><PageHeader title="Ministério" back="/grupos" /><ErrorState error={ministry.error} /></>;
+  if (ministry.error || !ministry.data) return <><PageHeader title="Ministério" back="/comunidade" /><ErrorState error={ministry.error} /></>;
   const m = ministry.data;
   if (!m.isMember && !canManageMembers && !canCreateSchedule) {
-    return <><PageHeader title={m.name} back="/grupos" /><PermissionDenied description="Somente integrantes e a liderança deste ministério acessam equipe e escalas." /></>;
+    return <><PageHeader title={m.name} back="/comunidade" /><PermissionDenied description="Somente integrantes e a liderança deste ministério acessam equipe e escalas." /></>;
   }
 
   return (
     <div className="space-y-6">
-      <PageHeader title={m.name} back="/grupos" subtitle={m.description} actions={(canManageMembers || canCreateSchedule) && <Badge tone="primary">Liderança</Badge>} />
+      <PageHeader title={m.name} back="/comunidade" subtitle={m.description} actions={(canManageMembers || canCreateSchedule) && <Badge tone="primary">Liderança</Badge>} />
 
       <section aria-labelledby="team">
         <Card>
@@ -71,7 +71,7 @@ export function MinistryPage() {
 
 function RemoveMember({ orgId, ministryId, membershipId, name }: { orgId: string; ministryId: string; membershipId: string; name: string }) {
   const qc = useQueryClient();
-  const del = useMutation({ mutationFn: () => api.removeMinistryMember(orgId, membershipId), onSuccess: () => qc.invalidateQueries({ queryKey: ['ministry-members', ministryId] }) });
+  const del = useMutation({ mutationFn: () => api.removeMinistryMember(orgId, membershipId), onSuccess: () => qc.invalidateQueries({ queryKey: ['ministry-members', orgId, ministryId] }) });
   return (
     <Button variant="ghost" size="sm" aria-label={`Remover ${name}`} loading={del.isPending}
       onClick={() => { if (window.confirm(`Remover ${name} da equipe?`)) del.mutate(); }}>
@@ -85,7 +85,7 @@ function AddMember({ orgId, ministryId, exclude }: { orgId: string; ministryId: 
   const [positions, setPositions] = useState('');
   const add = useMutation({
     mutationFn: (userId: string) => api.addMinistryMember(orgId, ministryId, userId, positions.split(',').map((x) => x.trim()).filter(Boolean)),
-    onSuccess: () => { setPositions(''); qc.invalidateQueries({ queryKey: ['ministry-members', ministryId] }); },
+    onSuccess: () => { setPositions(''); qc.invalidateQueries({ queryKey: ['ministry-members', orgId, ministryId] }); },
   });
   return (
     <div className="mt-4 space-y-3 border-t border-line pt-4">
@@ -110,7 +110,7 @@ function NewSchedule({ orgId, ministryId, tz }: { orgId: string; ministryId: str
       setErrors({});
       return api.createSchedule(orgId, { ...parsed.data, startsAt: churchLocalToIso(parsed.data.startsAt, tz) });
     },
-    onSuccess: () => { setF({ title: '', startsAt: '', notes: '' }); setOpen(false); qc.invalidateQueries({ queryKey: ['schedules', ministryId] }); },
+    onSuccess: () => { setF({ title: '', startsAt: '', notes: '' }); setOpen(false); qc.invalidateQueries({ queryKey: ['schedules', orgId, ministryId] }); },
   });
   if (!open) return <Button variant="secondary" onClick={() => setOpen(true)}>Nova escala</Button>;
   return (
@@ -131,7 +131,7 @@ function ScheduleCard({ s, orgId, tz, canEdit, team }: { s: Schedule; orgId: str
   const qc = useQueryClient();
   const [userId, setUserId] = useState('');
   const [position, setPosition] = useState('');
-  const refresh = () => qc.invalidateQueries({ queryKey: ['schedules', s.ministryId] });
+  const refresh = () => qc.invalidateQueries({ queryKey: ['schedules', orgId, s.ministryId] });
   const add = useMutation({ mutationFn: () => api.addAssignment(orgId, s.id, userId, position.trim()), onSuccess: () => { setUserId(''); setPosition(''); refresh(); } });
   const remove = useMutation({ mutationFn: (aid: string) => api.removeAssignment(orgId, aid), onSuccess: refresh });
   const publish = useMutation({ mutationFn: () => api.publishSchedule(s.id), onSuccess: refresh });

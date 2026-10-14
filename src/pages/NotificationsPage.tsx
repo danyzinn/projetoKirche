@@ -16,12 +16,13 @@ export function NotificationsPage() {
   const { orgId } = useCurrentOrg();
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ['notifications', orgId], queryFn: () => api.listNotifications(orgId) });
-  const mark = useMutation({ mutationFn: (ids: string[] | null) => api.markNotificationsRead(ids), onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications', orgId] }) });
+  const mark = useMutation({ mutationFn: (ids: string[] | null) => api.markNotificationsRead(orgId, ids), onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications', orgId] }) });
   const unread = q.data?.filter((n) => !n.readAt).length ?? 0;
   return (
     <div>
       <PageHeader title="Notificações" subtitle={unread ? `${unread} não lida${unread > 1 ? 's' : ''}` : 'Tudo em dia'}
         actions={unread > 0 && <Button size="sm" variant="secondary" loading={mark.isPending} onClick={() => mark.mutate(null)}>Marcar todas como lidas</Button>} />
+      {mark.error && <ErrorState error={mark.error} />}
       {q.isLoading ? <LoadingList /> : q.error ? <ErrorState error={q.error} onRetry={() => q.refetch()} /> : !q.data?.length ? (
         <EmptyState icon={<Bell className="h-6 w-6" aria-hidden />} title="Nenhuma notificação" description="Avisos, escalas e eventos para você aparecerão aqui." />
       ) : (

@@ -5,11 +5,11 @@ Não dependa de prompts antigos: decisões estão registradas aqui e em `docs/`.
 
 ## Produto
 
+- Direção atual: **um app por igreja**, núcleo compartilhado e implantação própria; ver `docs/ONE_APP_PER_CHURCH.md`. Identidade pública centralizada em `config/church.json`.
 - **Kirche** = empresa detentora. **Kirche Core** = produto-base multi-tenant. **IBV Nova** = primeiro tenant (piloto).
-- Interface do usuário final mostra a marca do **tenant** (vinda de `organization_branding`), nunca "Kirche",
+- Interface do usuário final mostra a marca da **igreja** (vinda de `config/church.json`), nunca "Kirche",
   exceto o crédito discreto "Tecnologia Kirche".
-- **Nunca** hardcodar "IBV Nova" em lógica central. Exceções conscientes: `AuthLayout` (antes do login não há
-  tenant resolvido — trocar por branding público quando houver domínio por igreja), `index.html`, `manifest`, seed e modo DEMO.
+- **Nunca** hardcodar "IBV Nova" em lógica central. A identidade fica em `config/church.json`; seed mantém apenas dados fictícios.
 - Conteúdo DEMO é sempre rotulado "(DEMO)". Não inventar endereço, horários de culto, membros ou finanças reais.
 
 ## Comandos

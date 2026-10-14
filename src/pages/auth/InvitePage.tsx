@@ -24,7 +24,8 @@ export function InvitePage() {
   if (!user) {
     return (
       <AuthLayout title="Você recebeu um convite" subtitle="Entre com o e-mail que recebeu o convite para continuar.">
-        <Link to="/entrar" state={{ from: `/convite/${token}` }}><Button className="w-full">Entrar para aceitar</Button></Link>
+        <Link to="/entrar" state={{ from: `/convite/${token}` }} className="block rounded-xl bg-primary p-3 text-center font-medium text-white">Entrar para aceitar</Link>
+        <Link to={`/criar-conta?convite=${encodeURIComponent(token)}`} className="mt-4 block text-center text-sm text-primary">Ainda não tenho conta</Link>
       </AuthLayout>
     );
   }

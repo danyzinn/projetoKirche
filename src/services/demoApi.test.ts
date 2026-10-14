@@ -70,3 +70,7 @@ describe('modo demonstração — regras espelhadas', () => {
     await expect(api.listAnnouncements(ORG)).rejects.toMatchObject({ code: 'not_authenticated' });
   });
 });
+
+it('não simula criação de conta real na demonstração', async () => {
+  await expect(createDemoApi().signUp('teste@example.test', 'password123', 'Teste')).rejects.toThrow('Cadastro real indisponível');
+});

@@ -1,3 +1,4 @@
+import { church, enabledModules } from '@/config/church';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/services';
@@ -34,7 +35,7 @@ export function OrgProvider({ children }: { children: ReactNode }) {
 
   // Resolve a igreja atual: escolhida e válida > slug padrão > única disponível.
   const orgId = useMemo(() => {
-    const list = orgsQ.data;
+    const list = orgsQ.data?.filter((o) => o.slug === church.slug);
     if (!list?.length) return null;
     if (selected && list.some((o) => o.id === selected)) return selected;
     const bySlug = env.defaultOrgSlug && list.find((o) => o.slug === env.defaultOrgSlug);
@@ -42,15 +43,15 @@ export function OrgProvider({ children }: { children: ReactNode }) {
     return list.length === 1 ? list[0].id : null;
   }, [orgsQ.data, selected]);
 
-  const ctxQ = useQuery({ queryKey: ['orgctx', orgId], queryFn: () => api.getOrgContext(orgId!), enabled: !!orgId });
+  const ctxQ = useQuery({ queryKey: ['orgctx', user?.id, orgId], queryFn: () => api.getOrgContext(orgId!), enabled: !!orgId });
 
   // White-label: aplica tokens do tenant em CSS variables.
   useEffect(() => {
-    const theme = ctxQ.data?.branding.theme ?? {};
+    const theme = church.theme;
     const root = document.documentElement;
     const map: [string, string | undefined][] = [['--primary', theme.primary], ['--primary-hover', theme.primaryHover], ['--primary-soft', theme.primarySoft]];
     map.forEach(([k, v]) => { const t = v && hexToRgbTriplet(v); if (t) root.style.setProperty(k, t); else root.style.removeProperty(k); });
-    if (ctxQ.data) document.title = ctxQ.data.branding.appName;
+    document.title = church.name;
   }, [ctxQ.data]);
 
   const selectOrg = useCallback((id: string) => { write(id); setSelected(id); }, []);
@@ -59,8 +60,8 @@ export function OrgProvider({ children }: { children: ReactNode }) {
 
   return (
     <OrgContext.Provider value={{
-      organizations: orgsQ.data, orgsLoading: orgsQ.isLoading, orgsError: orgsQ.error, orgId, selectOrg,
-      ctx: ctxQ.data, ctxLoading: ctxQ.isLoading, ctxError: ctxQ.error, refetchCtx: () => void ctxQ.refetch(), can,
+      organizations: orgsQ.data?.filter((o) => o.slug === church.slug), orgsLoading: orgsQ.isLoading, orgsError: orgsQ.error, orgId, selectOrg,
+      ctx: ctxQ.data ? { ...ctxQ.data, modules: enabledModules(ctxQ.data.modules), branding: { ...ctxQ.data.branding, appName: church.name, logoUrl: church.logoUrl, theme: church.theme } } : undefined, ctxLoading: ctxQ.isLoading, ctxError: ctxQ.error, refetchCtx: () => void ctxQ.refetch(), can,
     }}>
       {children}
     </OrgContext.Provider>

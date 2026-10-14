@@ -1,0 +1,20 @@
+{
+  "slug": "ibv-nova-demo",
+  "name": "IBV Nova",
+  "shortName": "IBV Nova",
+  "description": "Agenda, comunicados e comunidade da sua igreja.",
+  "logoUrl": "/icon.svg",
+  "theme": {
+    "primary": "#B51227",
+    "primaryHover": "#920F20",
+    "primarySoft": "#FCE9ED"
+  },
+  "modules": [
+    "announcements",
+    "events",
+    "ministries",
+    "schedules",
+    "cells",
+    "notifications"
+  ]
+}

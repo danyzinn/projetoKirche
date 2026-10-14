@@ -69,14 +69,14 @@ export function AnnouncementDetailPage() {
   const { id = '' } = useParams();
   const { ctx, orgId } = useCurrentOrg();
   const qc = useQueryClient();
-  const q = useQuery({ queryKey: ['announcement', id], queryFn: () => api.getAnnouncement(orgId, id) });
+  const q = useQuery({ queryKey: ['announcement', orgId, id], queryFn: () => api.getAnnouncement(orgId, id) });
   const markRead = useMutation({
     mutationFn: () => api.markAnnouncementRead(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['announcements', orgId] }),
   });
   const publish = useMutation({
     mutationFn: () => api.publishAnnouncement(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['announcement', id] }); qc.invalidateQueries({ queryKey: ['announcements', orgId] }); qc.invalidateQueries({ queryKey: ['notifications', orgId] }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['announcement', orgId, id] }); qc.invalidateQueries({ queryKey: ['announcements', orgId] }); qc.invalidateQueries({ queryKey: ['notifications', orgId] }); },
   });
   const a = q.data;
   const { mutate: markReadMutate } = markRead;

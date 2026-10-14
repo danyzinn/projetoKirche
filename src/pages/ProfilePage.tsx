@@ -1,3 +1,4 @@
+import { hasAnyManagement } from '@/domain/permissions';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -15,7 +16,7 @@ import { ErrorState, FormMessage, LoadingList } from '@/components/ui/States';
 
 export function ProfilePage() {
   const { user, signOut } = useAuth();
-  const { ctx, organizations } = useCurrentOrg();
+  const { ctx } = useCurrentOrg();
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ['profile'], queryFn: api.getMyProfile });
   const [f, setF] = useState({ fullName: '', displayName: '', phone: '' });
@@ -34,6 +35,7 @@ export function ProfilePage() {
   return (
     <div className="space-y-4">
       <PageHeader title="Perfil" subtitle={user?.email} />
+      {hasAnyManagement(ctx.grants) && <Link to="/gestao" className="block rounded-xl bg-primary p-4 font-medium text-white">Minha Central de Gestão</Link>}
       {q.isLoading ? <LoadingList rows={1} /> : q.error ? <ErrorState error={q.error} /> : (
         <Card>
           <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
@@ -42,7 +44,7 @@ export function ProfilePage() {
             {save.error && (save.error as Error).message !== 'validation' && <FormMessage tone="error">{(save.error as Error).message}</FormMessage>}
             <Field label="Nome completo" error={errors.fullName}>{(p) => <Input autoComplete="name" value={f.fullName} onChange={(e) => setF({ ...f, fullName: e.target.value })} {...p} />}</Field>
             <Field label="Como prefere ser chamado(a)" error={errors.displayName}>{(p) => <Input value={f.displayName} onChange={(e) => setF({ ...f, displayName: e.target.value })} {...p} />}</Field>
-            <Field label="Telefone" error={errors.phone} hint="Visível apenas para quem tem acesso ao cadastro.">{(p) => <Input type="tel" autoComplete="tel" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} {...p} />}</Field>
+            <Field label="Telefone" error={errors.phone} hint="Visível apenas para você.">{(p) => <Input type="tel" autoComplete="tel" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} {...p} />}</Field>
             <Button type="submit" loading={save.isPending}>Salvar</Button>
           </form>
         </Card>
@@ -50,7 +52,7 @@ export function ProfilePage() {
       <Card>
         <CardTitle className="mb-2">Igreja vinculada</CardTitle>
         <p className="text-sm">{ctx.org.displayName}{ctx.org.isDemo && ' (demonstração)'}</p>
-        {organizations && organizations.length > 1 && <Link className="text-sm text-primary hover:underline" to="/selecionar-igreja">Trocar de igreja</Link>}
+
         <p className="mb-2 mt-4 text-sm font-medium">Minhas funções</p>
         <div className="flex flex-wrap gap-2">{ctx.grants.length ? ctx.grants.map((g) => <Badge key={g.id} tone="primary">{g.roleName}</Badge>) : <Badge>Membro</Badge>}</div>
       </Card>

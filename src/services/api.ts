@@ -28,6 +28,7 @@ export interface KircheApi {
   getSessionUser(): Promise<SessionUser | null>;
   onAuthChange(cb: (user: SessionUser | null) => void): () => void;
   signIn(email: string, password: string): Promise<void>;
+  signUp(email: string, password: string, fullName: string, invitationToken?: string): Promise<{ needsEmailConfirmation: boolean }>;
   signOut(): Promise<void>;
   requestPasswordReset(email: string): Promise<void>;
   updatePassword(password: string): Promise<void>;
@@ -80,7 +81,7 @@ export interface KircheApi {
 
   // Notificações
   listNotifications(orgId: string): Promise<AppNotification[]>;
-  markNotificationsRead(ids: string[] | null): Promise<void>;
+  markNotificationsRead(orgId: string, ids: string[] | null): Promise<void>;
 
   // Gestão de pessoas e permissões
   /** Busca mínima (id + nome) para líderes adicionarem pessoas, sem expor o diretório. */

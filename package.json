@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Kirche Core — plataforma SaaS multi-tenant de gestão de igrejas (piloto: IBV Nova)",
+  "description": "Kirche Core — base compartilhada para um aplicativo por igreja",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -12,7 +12,9 @@
     "typecheck": "tsc -b --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:db": "bash scripts/test-db.sh"
+    "test:db": "bash scripts/test-db.sh",
+    "check:church": "node scripts/validate-church.mjs",
+    "prebuild": "npm run check:church"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

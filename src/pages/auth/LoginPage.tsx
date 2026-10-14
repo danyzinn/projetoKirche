@@ -77,6 +77,7 @@ export function LoginPage() {
         </Field>
         <Button type="submit" className="w-full" loading={form.formState.isSubmitting}>Entrar</Button>
         <p className="text-center text-sm"><Link className="text-primary hover:underline" to="/recuperar-senha">Esqueci minha senha</Link></p>
+        <p className="text-center text-sm"><Link className="text-primary hover:underline" to={from.startsWith('/convite/') ? `/criar-conta?convite=${encodeURIComponent(from.slice(9))}` : '/criar-conta'}>Criar conta</Link></p>
       </form>
     </AuthLayout>
   );
