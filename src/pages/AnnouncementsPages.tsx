@@ -69,14 +69,14 @@ export function AnnouncementDetailPage() {
   const { id = '' } = useParams();
   const { ctx, orgId } = useCurrentOrg();
   const qc = useQueryClient();
-  const q = useQuery({ queryKey: ['announcement', id], queryFn: () => api.getAnnouncement(orgId, id) });
+  const q = useQuery({ queryKey: ['announcement', orgId, id], queryFn: () => api.getAnnouncement(orgId, id) });
   const markRead = useMutation({
     mutationFn: () => api.markAnnouncementRead(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['announcements', orgId] }),
   });
   const publish = useMutation({
     mutationFn: () => api.publishAnnouncement(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['announcement', id] }); qc.invalidateQueries({ queryKey: ['announcements', orgId] }); qc.invalidateQueries({ queryKey: ['notifications', orgId] }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['announcement', orgId, id] }); qc.invalidateQueries({ queryKey: ['announcements', orgId] }); qc.invalidateQueries({ queryKey: ['notifications', orgId] }); },
   });
   const a = q.data;
   const { mutate: markReadMutate } = markRead;
@@ -142,13 +142,13 @@ export function NewAnnouncementPage() {
     <div>
       <PageHeader title="Novo aviso" back="/avisos" subtitle="Escolha o público. Só aparecem grupos em que você pode comunicar." />
       <Card>
-        <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); save.mutate(canPublishAll); }}>
+        <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); if (!save.isPending) save.mutate(canPublishAll); }}>
           {serverError && <FormMessage tone="error">{serverError}</FormMessage>}
           <Field label="Título" error={errors.title}>{(p) => <Input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={140} {...p} />}</Field>
           <Field label="Mensagem" error={errors.body}>{(p) => <Textarea value={body} onChange={(e) => setBody(e.target.value)} maxLength={5000} {...p} />}</Field>
           <fieldset>
             <legend className="mb-2 text-sm font-medium">Público</legend>
-            {opts.isLoading ? <LoadingList rows={1} /> : opts.data?.length ? (
+            {opts.isLoading ? <LoadingList rows={1} /> : opts.error ? <ErrorState error={opts.error} /> : opts.data?.length ? (
               <div className="flex flex-wrap gap-2">
                 {opts.data.map((o) => {
                   const key = `${o.type}:${o.id}`;
@@ -165,11 +165,11 @@ export function NewAnnouncementPage() {
             {errors.audiences && <p role="alert" className="mt-1 text-sm text-danger">{errors.audiences}</p>}
           </fieldset>
           <div className="flex flex-wrap gap-2 pt-2">
-            {canPublishAll && <Button type="submit" loading={save.isPending && save.variables === true}>Publicar agora</Button>}
-            <Button type="button" variant="secondary" loading={save.isPending && save.variables === false} onClick={() => save.mutate(false)}>Salvar rascunho</Button>
+            {canPublishAll && <Button type="submit" disabled={save.isPending} loading={save.isPending && save.variables === true}>Publicar agora</Button>}
+            <Button type="button" variant="secondary" disabled={save.isPending} loading={save.isPending && save.variables === false} onClick={() => save.mutate(false)}>Salvar rascunho</Button>
           </div>
           {audiences.length > 0 && !canPublishAll && <p className="text-xs text-muted">Você pode criar o rascunho; a publicação para este público exige aprovação de quem tem permissão.</p>}
-          <p className="text-xs text-muted">Destinatários recebem a notificação no app. Push depende de autorização de cada pessoa e não tem entrega garantida.</p>
+          <p className="text-xs text-muted">Os comunicados publicados aparecem no aplicativo para o público selecionado.</p>
         </form>
       </Card>
     </div>

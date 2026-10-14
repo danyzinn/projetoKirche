@@ -28,7 +28,8 @@ export function EventsPage() {
   const list = (q.data ?? []).filter((e) => !mine || e.isRegistered);
   return (
     <div>
-      <PageHeader title="Eventos" subtitle="Agenda da igreja e dos seus grupos" actions={canAnywhere(ctx.grants, 'events.create') && (
+      {ctx.modules.includes('schedules') && <Link to="/escalas" className="mb-4 inline-block text-sm font-medium text-primary">Minhas escalas</Link>}
+      <PageHeader title="Agenda" subtitle="Agenda da igreja e dos seus grupos" actions={canAnywhere(ctx.grants, 'events.create') && (
         <Link to="/eventos/novo"><Button size="sm"><Plus className="h-4 w-4" aria-hidden />Novo evento</Button></Link>
       )} />
       <label className="mb-4 inline-flex min-h-[44px] items-center gap-2 text-sm">
@@ -70,8 +71,8 @@ export function EventDetailPage() {
   const { id = '' } = useParams();
   const { ctx, orgId } = useCurrentOrg();
   const qc = useQueryClient();
-  const q = useQuery({ queryKey: ['event', id], queryFn: () => api.getEvent(orgId, id) });
-  const invalidate = () => { qc.invalidateQueries({ queryKey: ['event', id] }); qc.invalidateQueries({ queryKey: ['events', orgId] }); };
+  const q = useQuery({ queryKey: ['event', orgId, id], queryFn: () => api.getEvent(orgId, id) });
+  const invalidate = () => { qc.invalidateQueries({ queryKey: ['event', orgId, id] }); qc.invalidateQueries({ queryKey: ['events', orgId] }); };
   const register = useMutation({ mutationFn: () => api.registerForEvent(id), onSuccess: invalidate });
   const cancel = useMutation({ mutationFn: () => api.cancelRegistration(id), onSuccess: invalidate });
   const e = q.data;

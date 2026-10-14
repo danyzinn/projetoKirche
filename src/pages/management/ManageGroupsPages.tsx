@@ -26,7 +26,7 @@ export function ManageMinistriesPage() {
       {q.isLoading ? <LoadingList /> : q.error ? <ErrorState error={q.error} /> : manageable.length === 0 ? <EmptyState title="Nenhum ministério sob sua gestão" /> : (
         <ul className="grid gap-3 sm:grid-cols-2">
           {manageable.map((m) => (
-            <li key={m.id}><Link to={`/ministerios/${m.id}`}><Card className="flex items-center gap-3 hover:border-primary/30"><span className="flex-1 font-medium">{m.name}</span>{m.kind === 'layout' && <Badge>Ambientação/Design (configurável)</Badge>}<ChevronRight className="h-4 w-4 text-muted" aria-hidden /></Card></Link></li>
+            <li key={m.id}><Link to={`/ministerios/${m.id}`} state={{ backTo: '/gestao/ministerios' }}><Card className="flex items-center gap-3 hover:border-primary/30"><span className="flex-1 font-medium">{m.name}</span>{m.kind === 'layout' && <Badge>Ambientação/Design (configurável)</Badge>}<ChevronRight className="h-4 w-4 text-muted" aria-hidden /></Card></Link></li>
           ))}
         </ul>
       )}
@@ -72,7 +72,7 @@ export function ManageCellsPage() {
       {q.isLoading ? <LoadingList /> : q.error ? <ErrorState error={q.error} /> : manageable.length === 0 ? <EmptyState title="Nenhuma célula sob sua gestão" /> : (
         <ul className="grid gap-3 sm:grid-cols-2">
           {manageable.map((c) => (
-            <li key={c.id}><Link to={`/celulas/${c.id}`}><Card className="hover:border-primary/30"><p className="font-medium">{c.name}</p><p className="text-sm text-muted">{c.regionLabel}{c.meetingWeekday !== null && ` · ${WEEKDAYS[c.meetingWeekday]}`}{c.meetingTime && ` às ${c.meetingTime}`}</p></Card></Link></li>
+            <li key={c.id}><Link to={`/celulas/${c.id}`} state={{ backTo: '/gestao/celulas' }}><Card className="hover:border-primary/30"><p className="font-medium">{c.name}</p><p className="text-sm text-muted">{c.regionLabel}{c.meetingWeekday !== null && ` · ${WEEKDAYS[c.meetingWeekday]}`}{c.meetingTime && ` às ${c.meetingTime}`}</p></Card></Link></li>
           ))}
         </ul>
       )}

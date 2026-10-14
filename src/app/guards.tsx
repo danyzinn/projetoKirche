@@ -16,9 +16,10 @@ function FullScreenLoading() {
 }
 
 export function RequireAuth({ children }: { children: ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, error } = useAuth();
   const location = useLocation();
   if (loading) return <FullScreenLoading />;
+  if (error) return <div className="p-6"><ErrorState error={error} onRetry={() => window.location.reload()} /></div>;
   if (!user) return <Navigate to="/entrar" replace state={{ from: location.pathname }} />;
   return <>{children}</>;
 }

@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import { readFileSync, existsSync } from 'node:fs';
+const c = JSON.parse(readFileSync(new URL('../config/church.json', import.meta.url), 'utf8'));
+assert.match(c.slug, /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+for (const key of ['name', 'shortName', 'description']) assert.ok(typeof c[key] === 'string' && c[key].trim(), `${key} obrigatório`);
+assert.ok(c.shortName.length <= 30, 'shortName deve ter até 30 caracteres');
+assert.match(c.logoUrl, /^\/[a-zA-Z0-9_-][a-zA-Z0-9_/-]*\.svg$/, 'Use um SVG local em public/');
+assert.ok(existsSync(new URL(`../public${c.logoUrl}`, import.meta.url)), 'Logo inexistente');
+for (const key of ['primary', 'primaryHover', 'primarySoft']) assert.match(c.theme[key], /^#[0-9a-fA-F]{6}$/);
+const modules = ['announcements', 'events', 'ministries', 'schedules', 'cells', 'notifications'];
+assert.ok(Array.isArray(c.modules) && c.modules.every((m) => modules.includes(m)), 'Módulo desconhecido');
+assert.equal(new Set(c.modules).size, c.modules.length, 'Módulos duplicados');
+assert.ok(!c.modules.includes('schedules') || c.modules.includes('ministries'), 'Escalas dependem de ministérios');
+console.log(`Configuração válida: ${c.name} (${c.slug})`);

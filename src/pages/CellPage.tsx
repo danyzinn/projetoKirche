@@ -21,19 +21,19 @@ export function CellPage() {
   const canManageMembers = can('cells.manage_members', scope);
   const canManageMeetings = can('cells.manage_meetings', scope);
   const qc = useQueryClient();
-  const q = useQuery({ queryKey: ['cell', id], queryFn: () => api.getCell(orgId, id) });
-  const refresh = () => qc.invalidateQueries({ queryKey: ['cell', id] });
+  const q = useQuery({ queryKey: ['cell', orgId, id], queryFn: () => api.getCell(orgId, id) });
+  const refresh = () => qc.invalidateQueries({ queryKey: ['cell', orgId, id] });
   const addMember = useMutation({ mutationFn: (userId: string) => api.addCellMember(orgId, id, userId), onSuccess: refresh });
 
   if (q.isLoading) return <LoadingList rows={2} />;
-  if (q.error || !q.data) return <><PageHeader title="Célula" back="/grupos" /><ErrorState error={q.error} /></>;
+  if (q.error || !q.data) return <><PageHeader title="Célula" back="/comunidade" /><ErrorState error={q.error} /></>;
   const c = q.data;
   if (!c.isMember && !canManageMembers && !canManageMeetings) {
-    return <><PageHeader title={c.name} back="/grupos" /><PermissionDenied description="Somente participantes e a liderança desta célula veem detalhes." /></>;
+    return <><PageHeader title={c.name} back="/comunidade" /><PermissionDenied description="Somente participantes e a liderança desta célula veem detalhes." /></>;
   }
   return (
     <div className="space-y-5">
-      <PageHeader title={c.name} back="/grupos" subtitle={`${c.regionLabel}${c.meetingWeekday !== null ? ` · ${WEEKDAYS[c.meetingWeekday]}` : ''}${c.meetingTime ? ` às ${c.meetingTime}` : ''}`}
+      <PageHeader title={c.name} back="/comunidade" subtitle={`${c.regionLabel}${c.meetingWeekday !== null ? ` · ${WEEKDAYS[c.meetingWeekday]}` : ''}${c.meetingTime ? ` às ${c.meetingTime}` : ''}`}
         actions={(canManageMembers || canManageMeetings) && <Badge tone="primary">Liderança</Badge>} />
       <Card className="flex items-start gap-3">
         {c.address ? <MapPin className="mt-0.5 h-5 w-5 text-primary" aria-hidden /> : <Lock className="mt-0.5 h-5 w-5 text-muted" aria-hidden />}

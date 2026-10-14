@@ -1,3 +1,4 @@
+import { church } from '@/config/church';
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
 import { can, canAnywhere } from '@/domain/permissions';
 import type {
@@ -30,7 +31,7 @@ function fail(error: PostgrestError | { message: string; code?: string } | null)
     throw new ApiError('not_found', 'Registro não encontrado ou sem acesso.');
   if (error?.code === '23505') throw new ApiError('conflict', 'Este registro já existe.');
   // Não vaza detalhes internos ao usuário final.
-  console.error('[api]', error);
+  console.error('[api]', error?.code ?? 'unknown');
   throw new ApiError('unknown', 'Não foi possível concluir a operação. Tente novamente.');
 }
 
@@ -146,6 +147,14 @@ export function createSupabaseApi(sb: SupabaseClient): KircheApi {
       const { error } = await sb.auth.signInWithPassword({ email, password });
       if (error) throw new ApiError('validation', 'E-mail ou senha incorretos.');
     },
+    async signUp(email, password, fullName, invitationToken) {
+      const destination = invitationToken ? `/convite/${encodeURIComponent(invitationToken)}` : '/';
+      const { data, error } = await sb.auth.signUp({ email, password, options: {
+        data: { full_name: fullName }, emailRedirectTo: `${window.location.origin}${destination}`,
+      } });
+      if (error) throw new ApiError('validation', 'Não foi possível criar a conta. Confira os dados e tente novamente.');
+      return { needsEmailConfirmation: !data.session };
+    },
     async signOut() { await sb.auth.signOut(); },
     async requestPasswordReset(email) {
       const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/redefinir-senha` });
@@ -160,7 +169,7 @@ export function createSupabaseApi(sb: SupabaseClient): KircheApi {
     },
 
     async listMyOrganizations() {
-      const rows = unwrap(await sb.from('organizations').select('id, slug, display_name, is_demo').order('display_name'));
+      const rows = unwrap(await sb.from('organizations').select('id, slug, display_name, is_demo').eq('slug', church.slug).order('display_name'));
       return rows.map((r) => ({ id: r.id, slug: r.slug, displayName: r.display_name, isDemo: r.is_demo }));
     },
     async getOrgContext(orgId) {
@@ -186,8 +195,7 @@ export function createSupabaseApi(sb: SupabaseClient): KircheApi {
     },
 
     async getMyProfile() {
-      const uid = await me();
-      const r = unwrap(await sb.from('profiles').select('id, full_name, display_name, phone').eq('id', uid).single());
+      const r = unwrap(await sb.rpc('get_my_profile').single()) as { id: string; full_name: string; display_name: string | null; phone: string | null };
       return { id: r.id, fullName: r.full_name, displayName: r.display_name, phone: r.phone };
     },
     async updateMyProfile(input) {
@@ -371,7 +379,7 @@ export function createSupabaseApi(sb: SupabaseClient): KircheApi {
         .eq('organization_id', orgId).order('created_at', { ascending: false }).limit(100));
       return rows.map((r) => ({ id: r.id, category: r.category, title: r.title, body: r.body, link: r.link, readAt: r.read_at, createdAt: r.created_at }));
     },
-    async markNotificationsRead(ids) { unwrap(await sb.rpc('mark_notifications_read', { p_ids: ids })); },
+    async markNotificationsRead(orgId, ids) { unwrap(await sb.rpc('mark_notifications_read', { p_org: orgId, p_ids: ids })); },
 
     async searchMembers(orgId, query) {
       if (query.trim().length < 2) return [];

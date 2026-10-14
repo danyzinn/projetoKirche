@@ -9,19 +9,19 @@ import { EmptyState, ErrorState, LoadingList } from '@/components/ui/States';
 import { WEEKDAYS } from '@/lib/utils';
 
 export function GroupsPage() {
-  const { orgId } = useCurrentOrg();
-  const ministries = useQuery({ queryKey: ['ministries', orgId], queryFn: () => api.listMinistries(orgId) });
-  const cells = useQuery({ queryKey: ['cells', orgId], queryFn: () => api.listCells(orgId) });
+  const { orgId, ctx } = useCurrentOrg();
+  const ministries = useQuery({ queryKey: ['ministries', orgId], queryFn: () => api.listMinistries(orgId), enabled: ctx.modules.includes('ministries') });
+  const cells = useQuery({ queryKey: ['cells', orgId], queryFn: () => api.listCells(orgId), enabled: ctx.modules.includes('cells') });
   const myMinistries = ministries.data?.filter((m) => m.isMember) ?? [];
   const myCells = cells.data?.filter((c) => c.isMember) ?? [];
   const otherCells = cells.data?.filter((c) => !c.isMember) ?? [];
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Meus grupos" subtitle="Ministérios, escalas e células" actions={
+      <PageHeader title="Comunidade" subtitle="Ministérios, escalas e células" actions={ctx.modules.includes('schedules') &&
         <Link to="/escalas" className="inline-flex h-9 items-center gap-2 rounded-xl border border-line bg-surface px-3 text-sm font-medium hover:bg-canvas"><ClipboardList className="h-4 w-4" aria-hidden />Minhas escalas</Link>
       } />
-      <section aria-labelledby="min-title">
+      {ctx.modules.includes('ministries') && <section aria-labelledby="min-title">
         <h2 id="min-title" className="mb-3 flex items-center gap-2 font-semibold"><Music className="h-4 w-4 text-primary" aria-hidden />Meus ministérios</h2>
         {ministries.isLoading ? <LoadingList rows={2} /> : ministries.error ? <ErrorState error={ministries.error} /> : myMinistries.length ? (
           <ul className="grid gap-3 sm:grid-cols-2">
@@ -30,8 +30,8 @@ export function GroupsPage() {
             ))}
           </ul>
         ) : <EmptyState title="Você ainda não integra um ministério" description="Converse com a liderança do ministério em que deseja servir." />}
-      </section>
-      <section aria-labelledby="cell-title">
+      </section>}
+      {ctx.modules.includes('cells') && <section aria-labelledby="cell-title">
         <h2 id="cell-title" className="mb-3 flex items-center gap-2 font-semibold"><Users className="h-4 w-4 text-primary" aria-hidden />Minha célula</h2>
         {cells.isLoading ? <LoadingList rows={1} /> : cells.error ? <ErrorState error={cells.error} /> : myCells.length ? (
           <ul className="grid gap-3 sm:grid-cols-2">
@@ -40,7 +40,7 @@ export function GroupsPage() {
             ))}
           </ul>
         ) : <EmptyState title="Sem célula vinculada" description="Veja abaixo as células da igreja e fale com a coordenação." />}
-      </section>
+      </section>}
       {otherCells.length > 0 && (
         <section aria-labelledby="find-title">
           <h2 id="find-title" className="mb-1 font-semibold">Encontrar uma célula</h2>

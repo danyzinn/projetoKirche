@@ -1,3 +1,4 @@
+import { church } from '@/config/church';
 /**
  * MODO DEMONSTRAÇÃO — dados FICTÍCIOS em memória do navegador.
  * Nada é persistido: recarregar a página restaura o estado inicial.
@@ -93,7 +94,7 @@ function initialStore(): Store {
       { id: 'as2', scheduleId: sched1, userId: 'demo-u2', position: 'Violão', status: 'confirmed', declineReason: null },
     ],
     announcements: [
-      { id: 'ann-1', title: 'Bem-vindo ao app da IBV Nova (DEMO)', body: 'Este é um aviso de demonstração. Todo o conteúdo aqui é fictício e será substituído pelo conteúdo aprovado pela igreja.', status: 'published', publishedAt: daysFromNow(-1, 9), authorId: 'demo-u3', audiences: [{ type: 'church', id: null }] },
+      { id: 'ann-1', title: `Bem-vindo ao app da ${church.name} (DEMO)`, body: 'Este é um aviso de demonstração. Todo o conteúdo aqui é fictício e será substituído pelo conteúdo aprovado pela igreja.', status: 'published', publishedAt: daysFromNow(-1, 9), authorId: 'demo-u3', audiences: [{ type: 'church', id: null }] },
       { id: 'ann-2', title: 'Ensaio do Louvor (DEMO)', body: 'Ensaio fictício para demonstrar avisos segmentados por ministério.', status: 'published', publishedAt: daysFromNow(0, 8), authorId: 'demo-u2', audiences: [{ type: 'ministry', id: 'min-1' }] },
     ],
     reads: new Set(),
@@ -181,17 +182,18 @@ export function createDemoApi(): KircheApi {
       current = { id: p.id, email: p.email };
       listeners.forEach((l) => l(current));
     },
+    async signUp() { throw new ApiError('validation', 'Cadastro real indisponível na demonstração.'); },
     async signOut() { current = null; listeners.forEach((l) => l(null)); },
     async requestPasswordReset() { throw new ApiError('validation', 'Recuperação de senha indisponível no modo demonstração.'); },
     async updatePassword() { throw new ApiError('validation', 'Indisponível no modo demonstração.'); },
     async acceptInvitation() { throw new ApiError('validation', 'Convites exigem o backend configurado (modo demonstração).'); },
 
-    async listMyOrganizations() { me(); return delay([{ id: ORG_ID, slug: 'ibv-nova-demo', displayName: 'IBV Nova', isDemo: true }]); },
+    async listMyOrganizations() { me(); return delay([{ id: ORG_ID, slug: church.slug, displayName: church.name, isDemo: true }]); },
     async getOrgContext() {
       const u = me();
       return delay({
-        org: { id: ORG_ID, slug: 'ibv-nova-demo', displayName: 'IBV Nova', isDemo: true, timezone: 'America/Sao_Paulo', locale: 'pt-BR' },
-        branding: { appName: 'IBV Nova', logoUrl: null, poweredBy: 'Tecnologia Kirche', theme: {} },
+        org: { id: ORG_ID, slug: church.slug, displayName: church.name, isDemo: true, timezone: 'America/Sao_Paulo', locale: 'pt-BR' },
+        branding: { appName: church.name, logoUrl: church.logoUrl, poweredBy: 'Tecnologia Kirche', theme: {} },
         modules: ['announcements', 'events', 'ministries', 'schedules', 'cells', 'notifications'],
         grants: grantsOf(u),
         myMinistryIds: s.ministryMembers.filter((m) => m.userId === u).map((m) => m.ministryId),
@@ -417,7 +419,8 @@ export function createDemoApi(): KircheApi {
       const u = me();
       return delay(s.notifications.filter((n) => n.userId === u).map(({ userId: _u, dedupe: _d, ...n }) => n));
     },
-    async markNotificationsRead(ids) {
+    async markNotificationsRead(orgId, ids) {
+      if (orgId !== ORG_ID) throw new ApiError('permission_denied', 'Igreja indisponível.');
       const u = me();
       s.notifications.forEach((n) => { if (n.userId === u && !n.readAt && (!ids || ids.includes(n.id))) n.readAt = new Date().toISOString(); });
     },

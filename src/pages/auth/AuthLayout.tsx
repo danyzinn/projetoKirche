@@ -1,3 +1,4 @@
+import { church } from '@/config/church';
 import type { ReactNode } from 'react';
 import { DemoBanner } from '@/components/layout/DemoBanner';
 
@@ -8,8 +9,8 @@ export function AuthLayout({ title, subtitle, children }: { title: string; subti
       <DemoBanner />
       <div className="mx-auto flex max-w-md flex-col px-4 py-10">
         <div className="mb-8 flex flex-col items-center text-center">
-          <span aria-hidden className="mb-3 grid h-14 w-14 place-items-center rounded-2xl bg-primary text-base font-bold text-white shadow-card">IBV</span>
-          <p className="text-xl font-semibold tracking-tight">IBV Nova</p>
+          <span aria-hidden className="mb-3 grid h-14 w-14 place-items-center rounded-2xl bg-primary text-base font-bold text-white shadow-card"><img src={church.logoUrl} alt="" className="h-10 w-10 object-contain" /></span>
+          <p className="text-xl font-semibold tracking-tight">{church.name}</p>
         </div>
         <div className="rounded-2xl border border-line bg-surface p-6 shadow-card">
           <h1 className="text-lg font-semibold">{title}</h1>

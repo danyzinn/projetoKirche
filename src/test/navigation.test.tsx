@@ -46,6 +46,12 @@ describe('interface por perfil (modo demonstração)', () => {
     expect(await screen.findByText('Acesso restrito')).toBeInTheDocument();
   });
 
+  it.each([['/eventos', 'Agenda'], ['/grupos', 'Comunidade']])('preserva o endereço %s', async (path, title) => {
+    renderApp(path);
+    await userEvent.click(await screen.findByRole('button', { name: /Membro/ }));
+    expect(await screen.findByRole('heading', { name: title, level: 1 })).toBeInTheDocument();
+  });
+
   it('administração vê todas as centrais liberadas, exceto finanças', async () => {
     renderApp('/gestao');
     await userEvent.click(await screen.findByRole('button', { name: /Administração/ }));

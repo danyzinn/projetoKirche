@@ -25,15 +25,17 @@ export function HomePage() {
   const { ctx, orgId } = useCurrentOrg();
   const tz = ctx.org.timezone;
   const profile = useQuery({ queryKey: ['profile'], queryFn: api.getMyProfile });
-  const anns = useQuery({ queryKey: ['announcements', orgId], queryFn: () => api.listAnnouncements(orgId) });
-  const events = useQuery({ queryKey: ['events', orgId], queryFn: () => api.listEvents(orgId) });
-  const assignments = useQuery({ queryKey: ['my-assignments', orgId], queryFn: () => api.listMyAssignments(orgId) });
-  const cells = useQuery({ queryKey: ['cells', orgId], queryFn: () => api.listCells(orgId) });
+  const anns = useQuery({ queryKey: ['announcements', orgId], queryFn: () => api.listAnnouncements(orgId), enabled: ctx.modules.includes('announcements') });
+  const events = useQuery({ queryKey: ['events', orgId], queryFn: () => api.listEvents(orgId), enabled: ctx.modules.includes('events') });
+  const assignments = useQuery({ queryKey: ['my-assignments', orgId], queryFn: () => api.listMyAssignments(orgId), enabled: ctx.modules.includes('schedules') });
+  const cells = useQuery({ queryKey: ['cells', orgId], queryFn: () => api.listCells(orgId), enabled: ctx.modules.includes('cells') });
 
   const firstName = profile.data?.displayName || profile.data?.fullName.split(' ')[0];
-  const nextAssignment = assignments.data?.find((a) => new Date(a.schedule.startsAt) >= new Date());
+  const nextAssignment = assignments.data?.find((a) => a.status !== 'declined' && new Date(a.schedule.startsAt) >= new Date());
   const myCell = cells.data?.find((c) => c.isMember);
-  const published = anns.data?.filter((a) => a.status === 'published').slice(0, 3);
+  const published = anns.data?.filter((a) => a.status === 'published' && !!a.publishedAt && new Date(a.publishedAt) <= new Date()).slice(0, 3);
+
+  const upcoming = (events.data ?? []).filter((e) => e.status === 'published' && new Date(e.startsAt) >= new Date()).sort((a, b) => a.startsAt.localeCompare(b.startsAt));
 
   return (
     <div className="space-y-4">
@@ -51,7 +53,7 @@ export function HomePage() {
       )}
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Section title="Minha próxima escala" to="/escalas" icon={ClipboardList}>
+        {ctx.modules.includes('schedules') && <Section title="Minha próxima escala" to="/escalas" icon={ClipboardList}>
           {assignments.isLoading ? <Skeleton className="h-14" /> : assignments.error ? <ErrorState error={assignments.error} /> : nextAssignment ? (
             <div>
               <p className="font-medium">{nextAssignment.schedule.title}</p>
@@ -61,19 +63,19 @@ export function HomePage() {
               </Badge>
             </div>
           ) : <p className="text-sm text-muted">Você não tem escalas futuras.</p>}
-        </Section>
+        </Section>}
 
-        <Section title="Minha célula" to={myCell ? `/celulas/${myCell.id}` : '/grupos'} icon={Users}>
-          {cells.isLoading ? <Skeleton className="h-14" /> : myCell ? (
+        {ctx.modules.includes('cells') && <Section title="Minha célula" to={myCell ? `/celulas/${myCell.id}` : '/grupos'} icon={Users}>
+          {cells.isLoading ? <Skeleton className="h-14" /> : cells.error ? <ErrorState error={cells.error} /> : myCell ? (
             <div>
               <p className="font-medium">{myCell.name}</p>
               <p className="text-sm text-muted">{myCell.regionLabel}{myCell.meetingWeekday !== null && ` · ${WEEKDAYS[myCell.meetingWeekday]}`}{myCell.meetingTime && ` às ${myCell.meetingTime}`}</p>
             </div>
           ) : <p className="text-sm text-muted">Você ainda não participa de uma célula. Veja as opções em Grupos.</p>}
-        </Section>
+        </Section>}
       </div>
 
-      <Section title="Avisos recentes" to="/avisos" icon={Megaphone}>
+      {ctx.modules.includes('announcements') && <Section title="Avisos recentes" to="/avisos" icon={Megaphone}>
         {anns.isLoading ? <Skeleton className="h-20" /> : anns.error ? <ErrorState error={anns.error} onRetry={() => anns.refetch()} /> : published?.length ? (
           <ul className="divide-y divide-line">
             {published.map((a) => (
@@ -86,17 +88,17 @@ export function HomePage() {
             ))}
           </ul>
         ) : <p className="text-sm text-muted">Nenhum aviso por enquanto.</p>}
-      </Section>
+      </Section>}
 
-      <Section title="Próximos eventos" to="/eventos" icon={CalendarDays}>
-        {events.isLoading ? <Skeleton className="h-20" /> : events.error ? <ErrorState error={events.error} /> : events.data?.length ? (
+      {ctx.modules.includes('events') && <Section title="Próximos eventos" to="/eventos" icon={CalendarDays}>
+        {events.isLoading ? <Skeleton className="h-20" /> : events.error ? <ErrorState error={events.error} /> : upcoming.length ? (
           <ul className="divide-y divide-line">
-            {events.data.slice(0, 3).map((e) => (
+            {upcoming.slice(0, 3).map((e) => (
               <li key={e.id}><Link to={`/eventos/${e.id}`} className="block py-2.5 hover:text-primary"><span className="block font-medium">{e.title}</span><span className="text-xs text-muted">{formatDateTime(e.startsAt, tz)}</span></Link></li>
             ))}
           </ul>
         ) : <p className="text-sm text-muted">Nenhum evento agendado.</p>}
-      </Section>
+      </Section>}
       <p className="text-xs text-muted">Horários de culto serão exibidos aqui após confirmação pela igreja.</p>
     </div>
   );
